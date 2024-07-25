@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  postgresql:
+    image: postgres:15.7
+    container_name: postgresql
+    hostname: postgresql
+    restart: unless-stopped
+    environment:
+      - "POSTGRES_DB=metabase"
+      - "POSTGRES_USER=admin"
+      - "POSTGRES_PASSWORD=admin"
+      - "PGPORT=3304"
+    volumes:
+      - ./data/postgresql:/var/lib/postgresql/data
+      - ./docker/postgresql:/docker-entrypoint-initdb.d
+    ports:
+      - "3304:3304"
+    networks:
+      - metabase-network
+
+  metabase:
+    image: metabase/metabase
+    container_name: metabase
+    ports:
+      - "3000:3000"
+    environment:
+      MB_DB_HOST: postgresql
+      MB_DB_TYPE: postgres
+      MB_DB_PORT: 3304
+      MB_DB_DBNAME: metabase
+      MB_DB_USER: admin
+      MB_DB_PASS: admin
+    volumes:
+      - ./data/metabase:/data
+    networks:
+      - metabase-network
+    depends_on:
+      - postgresql
+
+networks:
+  metabase-network:
+    driver: bridge
